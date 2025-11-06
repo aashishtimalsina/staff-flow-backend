@@ -1,0 +1,289 @@
+
+{
+  "entities": {
+    "CompanyProfile": {
+      "title": "CompanyProfile",
+      "type": "object",
+      "description": "Represents the details of the user's own company.",
+      "properties": {
+        "name": { "type": "string", "description": "The legal name of the company." },
+        "address": { "type": "string", "description": "The primary business address." },
+        "phone": { "type": "string", "description": "The primary contact phone number." },
+        "email": { "type": "string", "description": "The primary contact email address.", "format": "email" },
+        "website": { "type": "string", "description": "The company's website URL.", "format": "uri" },
+        "logoUrl": { "type": "string", "description": "URL of the company logo.", "format": "uri" },
+        "bankName": { "type": "string", "description": "The name of the company's bank." },
+        "accountNumber": { "type": "string", "description": "The company's bank account number." },
+        "sortCode": { "type": "string", "description": "The company's bank sort code." }
+      },
+      "required": ["name"]
+    },
+    "Client": {
+      "title": "Client",
+      "type": "object",
+      "description": "Represents a client who requests staff, such as a care home or hospital.",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the client organization." },
+        "site": { "type": "string", "description": "Specific site or branch name, if applicable." },
+        "address": { "type": "string", "description": "Physical address of the client/site." },
+        "accountManagerContact": { "type": "string", "description": "Contact info for the account manager." },
+        "financeContact": { "type": "string", "description": "Contact info for the finance/invoice team." },
+        "primaryContact": { "type": "string", "description": "Primary contact person for day-to-day operations." },
+        "poRequired": { "type": "boolean", "description": "Whether a Purchase Order number is required for invoicing." }
+      },
+      "required": ["name", "primaryContact"]
+    },
+    "RateCard": {
+        "title": "RateCard",
+        "type": "object",
+        "description": "Defines a version of pay and bill rates for a client and job role, effective from a specific date.",
+        "properties": {
+            "jobRoleId": { "type": "string" },
+            "effectiveDate": { "type": "string", "format": "date" },
+            "rates": {
+                "type": "object",
+                "properties": {
+                    "Day": { "$ref": "#/backend/entities/Rate" },
+                    "Night": { "$ref": "#/backend/entities/Rate" },
+                    "Weekend": { "$ref": "#/backend/entities/Rate" },
+                    "Bank Holiday": { "$ref": "#/backend/entities/Rate" }
+                }
+            }
+        },
+        "required": ["jobRoleId", "effectiveDate", "rates"]
+    },
+    "Rate": {
+        "title": "Rate",
+        "type": "object",
+        "properties": {
+            "payRate": { "type": "number" },
+            "billRate": { "type": "number" }
+        },
+        "required": ["payRate", "billRate"]
+    },
+    "BookingRequest": {
+      "title": "BookingRequest",
+      "type": "object",
+      "description": "Represents a job or shift requested by a client.",
+      "properties": {
+        "clientId": { "type": "string", "description": "Reference to the client who made the request." },
+        "jobRoleId": { "type": "string", "description": "Reference to the job role required." },
+        "shiftStartTime": { "type": "string", "description": "Start time of the shift.", "format": "date-time" },
+        "shiftEndTime": { "type": "string", "description": "End time of the shift.", "format": "date-time" },
+        "location": { "type": "string", "description": "Location of the job." },
+        "notes": { "type": "string", "description": "Specific instructions or notes for the shift." },
+        "candidatesNeeded": { "type": "number", "description": "Number of candidates needed for this shift." },
+        "payRate": { "type": "number", "description": "The rate paid to the worker for this shift (can be overridden from rate card)." },
+        "billRate": { "type": "number", "description": "The rate billed to the client for this shift (can be overridden from rate card)." },
+        "status": {
+          "type": "string",
+          "description": "Status of the booking request.",
+          "enum": ["Open", "Booked", "Completed", "Cancelled"]
+        },
+        "cancellationReason": { "type": "string", "description": "Reason for cancelling the booking." }
+      },
+      "required": ["clientId", "jobRoleId", "shiftStartTime", "shiftEndTime", "location", "status", "candidatesNeeded", "payRate", "billRate"]
+    },
+    "Candidate": {
+      "title": "Candidate",
+      "type": "object",
+      "description": "Represents a candidate (worker) available for assignments.",
+      "properties": {
+        "userId": { "type": "string", "description": "Reference to the corresponding user account." },
+        "jobRoleId": { "type": "string", "description": "Primary job role of the candidate." },
+        "firstName": { "type": "string", "description": "First name of the candidate." },
+        "lastName": { "type": "string", "description": "Last name of the candidate." },
+        "email": { "type": "string", "description": "Contact email of the candidate.", "format": "email" },
+        "dob": { "type": "string", "format": "date", "description": "Date of Birth."},
+        "phone": { "type": "string", "description": "Contact phone number."},
+        "location": { "type": "string", "description": "Candidate's primary address or location." },
+        "skills": { "type": "array", "items": { "type": "string" }, "description": "List of skills or qualifications." },
+        "homeLocation": { "type": "string", "description": "Candidate's primary address or location." },
+        "availability": { "type": "string", "description": "JSON string representing candidate's availability.", "format": "json" },
+        "status": {
+            "type": "string",
+            "description": "The current status of the candidate in the recruitment pipeline.",
+            "enum": ["New", "Screened", "Interviewed", "Compliant", "Active", "Inactive"]
+        }
+      },
+      "required": ["userId", "firstName", "lastName", "status", "jobRoleId", "email", "dob"]
+    },
+    "Assignment": {
+      "title": "Assignment",
+      "type": "object",
+      "description": "Represents the assignment of a candidate to a booking (a booked shift).",
+      "properties": {
+        "bookingRequestId": { "type": "string", "description": "Reference to the booking request/shift." },
+        "candidateId": { "type": "string", "description": "Reference to the assigned candidate." },
+        "status": { "type": "string", "description": "Status of the assignment (e.g., Confirmed)." },
+        "createdBy": { "type": "string", "description": "ID of the user who created the assignment." }
+      },
+      "required": ["bookingRequestId", "candidateId", "status", "createdBy"]
+    },
+    "Timesheet": {
+      "title": "Timesheet",
+      "type": "object",
+      "description": "Represents a timesheet for tracking hours worked on an assignment.",
+      "properties": {
+        "timesheetNumber": { "type": "string", "description": "A unique identifier for the timesheet, e.g., for payroll processing." },
+        "assignmentId": { "type": "string", "description": "Reference to the assignment." },
+        "hoursStandard": { "type": "number", "description": "Total standard hours worked." },
+        "hoursOvertime": { "type": "number", "description": "Total overtime hours worked." },
+        "breaks": { "type": "number", "description": "Duration of unpaid breaks in hours."},
+        "expenses": { "type": "string", "description": "JSON string for any expenses.", "format": "json"},
+        "status": {
+          "type": "string",
+          "description": "Approval status of the timesheet.",
+          "enum": ["Draft", "Submitted", "Approved", "Rejected", "Locked"]
+        },
+        "approvedBy": { "type": "string", "description": "ID of the user who approved the timesheet." },
+        "approvedAt": { "type": "string", "description": "Timestamp of approval.", "format": "date-time" }
+      },
+      "required": ["assignmentId", "status", "timesheetNumber"]
+    },
+    "InvoiceLineItem": {
+      "title": "InvoiceLineItem",
+      "type": "object",
+      "description": "A single line item on an invoice.",
+      "properties": {
+        "description": { "type": "string" },
+        "quantity": { "type": "number" },
+        "unitPrice": { "type": "number" },
+        "total": { "type": "number" }
+      },
+      "required": ["description", "quantity", "unitPrice", "total"]
+    },
+    "Invoice": {
+      "title": "Invoice",
+      "type": "object",
+      "description": "Represents a client invoice generated from approved timesheets.",
+      "properties": {
+        "invoiceNumber": { "type": "string", "description": "The unique invoice number." },
+        "clientId": { "type": "string", "description": "Reference to the client being invoiced." },
+        "periodStart": { "type": "string", "description": "Start date of the invoice period.", "format": "date" },
+        "periodEnd": { "type": "string", "description": "End date of the invoice period.", "format": "date" },
+        "subtotal": { "type": "number", "description": "Total amount before tax." },
+        "tax": { "type": "number", "description": "Total tax amount." },
+        "total": { "type": "number", "description": "Total invoice amount." },
+        "status": {
+          "type": "string",
+          "description": "Payment status of the invoice.",
+          "enum": ["Draft", "Sent", "Part-Paid", "Paid", "Overdue", "Cancelled"]
+        },
+        "lineItems": { "type": "array", "items": { "$ref": "#/backend/entities/InvoiceLineItem" } },
+        "notes": { "type": "string", "description": "Additional notes for the invoice." }
+      },
+      "required": ["invoiceNumber", "clientId", "periodStart", "periodEnd", "subtotal", "tax", "total", "status", "lineItems"]
+    },
+    "CandidateCompliance": {
+      "title": "CandidateCompliance",
+      "description": "Represents the status of a single compliance document for a specific candidate.",
+      "type": "object",
+      "properties": {
+        "candidateId": { "type": "string", "description": "Reference to the candidate." },
+        "documentId": { "type": "string", "description": "Reference to the required document from the job role template."},
+        "documentName": { "type": "string", "description": "Name of the required document." },
+        "status": {
+          "type": "string",
+          "description": "Verification status of the document for this candidate.",
+          "enum": ["Pending", "Submitted", "Approved", "Rejected", "Expired"]
+        },
+        "expiryDate": { "type": "string", "description": "Expiry date of the document, if applicable.", "format": "date" },
+        "fileUrl": { "type": "string", "description": "URL of the uploaded document file.", "format": "uri" },
+        "verifiedBy": { "type": "string", "description": "ID of the user who verified the document." }
+      },
+      "required": ["candidateId", "documentId", "documentName", "status"]
+    },
+    "Interview": {
+      "title": "Interview",
+      "type": "object",
+      "description": "Represents an interview scheduled for a candidate.",
+      "properties": {
+        "candidateId": { "type": "string", "description": "Reference to the candidate." },
+        "clientId": { "type": "string", "description": "Reference to the client involved." },
+        "interviewTime": { "type": "string", "description": "Scheduled time of the interview.", "format": "date-time" },
+        "interviewType": { "type": "string", "description": "Type of interview (e.g., Phone, Video, In-person)." },
+        "outcome": {
+            "type": "string",
+            "description": "The result of the interview.",
+            "enum": ["Scheduled", "Completed", "Offer", "Reject"]
+        },
+        "notes": { "type": "string", "description": "Notes or feedback from the interview." }
+      },
+      "required": ["candidateId", "interviewTime", "interviewType", "outcome"]
+    },
+    "ComplianceDocument": {
+        "title": "ComplianceDocument",
+        "description": "A template for a required document.",
+        "type": "object",
+        "properties": {
+            "id": {"type": "string"},
+            "name": {"type": "string"}
+        },
+        "required": ["id", "name"]
+    },
+    "JobRole": {
+      "title": "JobRole",
+      "type": "object",
+      "description": "Represents a specific job role and its compliance requirements.",
+      "properties": {
+        "title": { "type": "string", "description": "The title of the job role (e.g., 'Registered Nurse')." },
+        "description": { "type": "string", "description": "A brief description of the job role." },
+        "documents": { "type": "array", "items": { "$ref": "#/backend/entities/ComplianceDocument" }}
+      },
+      "required": ["title"]
+    },
+    "AuditLog": {
+        "title": "AuditLog",
+        "description": "Represents a single entry in the system's audit trail, recording a user action.",
+        "type": "object",
+        "properties": {
+            "timestamp": { "type": "string", "format": "date-time", "description": "When the action occurred." },
+            "userId": { "type": "string", "description": "The ID of the user who performed the action." },
+            "userName": { "type": "string", "description": "The name of the user who performed the action." },
+            "action": {
+                "type": "string",
+                "description": "The type of action performed.",
+                "enum": ["create", "update", "delete", "cancel", "approve", "archive", "assign", "send", "login", "logout"]
+            },
+            "entity": { "type": "string", "description": "The type of entity that was affected (e.g., 'user', 'booking')." },
+            "entityId": { "type": "string", "description": "The ID of the entity that was affected." },
+            "details": { "type": "string", "description": "A human-readable description of the action." }
+        },
+        "required": ["timestamp", "userId", "userName", "action", "entity", "entityId", "details"]
+    },
+    "Notification": {
+        "title": "Notification",
+        "type": "object",
+        "description": "Represents an in-app notification for a user.",
+        "properties": {
+            "userId": { "type": "string", "description": "The ID of the user this notification is for." },
+            "message": { "type": "string", "description": "The content of the notification message." },
+            "link": { "type": "string", "description": "A URL to navigate to when the notification is clicked.", "format": "uri" },
+            "isRead": { "type": "boolean", "description": "Whether the user has read the notification." },
+            "createdAt": { "type": "string", "format": "date-time", "description": "When the notification was created." }
+        },
+        "required": ["userId", "message", "isRead", "createdAt"]
+    }
+  },
+  "auth": {
+    "providers": ["password"]
+  },
+  "firestore": {
+    "structure": [
+      { "path": "/company/profile", "definition": { "schema": { "$ref": "#/backend/entities/CompanyProfile" } } },
+      { "path": "/clients/{clientId}", "definition": { "schema": { "$ref": "#/backend/entities/Client" } } },
+      { "path": "/clients/{clientId}/rateCards/{rateCardId}", "definition": { "schema": { "$ref": "#/backend/entities/RateCard" } } },
+      { "path": "/bookingRequests/{bookingRequestId}", "definition": { "schema": { "$ref": "#/backend/entities/BookingRequest" } } },
+      { "path": "/candidates/{candidateId}", "definition": { "schema": { "$ref": "#/backend/entities/Candidate" } } },
+      { "path": "/assignments/{assignmentId}", "definition": { "schema": { "$ref": "#/backend/entities/Assignment" } } },
+      { "path": "/timesheets/{timesheetId}", "definition": { "schema": { "$ref": "#/backend/entities/Timesheet" } } },
+      { "path": "/invoices/{invoiceId}", "definition": { "schema": { "$ref": "#/backend/entities/Invoice" } } },
+      { "path": "/candidates/{candidateId}/compliance/{docId}", "definition": { "schema": { "$ref": "#/backend/entities/CandidateCompliance" } } },
+      { "path": "/interviews/{interviewId}", "definition": { "schema": { "$ref": "#/backend/entities/Interview" } } },
+      { "path": "/jobRoles/{jobRoleId}", "definition": { "schema": { "$ref": "#/backend/entities/JobRole" } } },
+      { "path": "/auditLogs/{auditLogId}", "definition": { "schema": { "$ref": "#/backend/entities/AuditLog" } } },
+      { "path": "/users/{userId}/notifications/{notificationId}", "definition": { "schema": { "$ref": "#/backend/entities/Notification" } } }
+    ]
+  }
+}
