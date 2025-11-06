@@ -17,6 +17,21 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('role')->default('user'); // superadmin, admin, user
+            $table->boolean('is_active')->default(true);
+            $table->boolean('is_verified')->default(false);
+            $table->string('ip_address', 45)->nullable();
+            $table->timestamp('last_login')->nullable();
+            $table->string('oauth_id')->nullable()->unique(); // Google OAuth ID
+            $table->string('photo')->nullable(); // Profile photo filename
+
+            // Address Information
+            $table->text('address')->nullable(); // Street address
+            $table->string('city')->nullable(); // City name
+            $table->string('state')->nullable(); // UK State/Region (england, scotland, wales, northern_ireland)
+            $table->string('postal_code')->nullable(); // Postal/ZIP code
+            $table->string('phone')->nullable(); // Phone number
+
             $table->rememberToken();
             $table->timestamps();
         });
